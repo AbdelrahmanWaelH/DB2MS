@@ -17,7 +17,7 @@ public class DBApp
 	public static void createTable(String tableName, String[] columnsNames)
 	{
 		Table t = new Table(columnsNames);
-		String startLog = String.format("Table created with name: '%s' & column names: '%s'", tableName, Arrays.toString(columnsNames));
+		String startLog = String.format("Table created name:%s, columnsNames:%s", tableName, Arrays.toString(columnsNames));
 		t.traceLog.add(startLog);
 		FileManager.storeTable(tableName, t);
 	}
@@ -51,7 +51,7 @@ public class DBApp
 			}	//record added to the appropriate page, insertion page and it's number are also ready
 			FileManager.storeTablePage(tableName, insertionPageNumber, insertionPage);
 			FileManager.storeTable(tableName, t);
-			String entry = String.format("Inserted: %s, at page number:%d, at time: %d", Arrays.toString(record), insertionPageNumber, System.currentTimeMillis());
+			String entry = String.format("Inserted:%s, at page number:%d, execution time (mil):%d", Arrays.toString(record), insertionPageNumber, System.currentTimeMillis());
 			t.traceLog.add(entry);
 			FileManager.storeTable(tableName, t);
 		}
@@ -72,7 +72,7 @@ public class DBApp
 				}
 			}
 		}
-		String entry = String.format("Entire table selected at: %d", System.currentTimeMillis());
+		String entry = String.format("Select all pages:%d, records:%d, execution time (mil):%d", t.pages.size(), resultList.size(), System.currentTimeMillis());
 		t.traceLog.add(entry);
 		FileManager.storeTable(tableName, t);
 		return resultList;
@@ -90,7 +90,7 @@ public class DBApp
 			Page p = t.pages.get(pageNumber);
 			String[] record = p.records.get(recordNumber);
 			resultList.add(record);
-			String entry = String.format("Row: %s was selected from the table at time: %d", Arrays.toString(record), System.currentTimeMillis());
+			String entry = String.format("Select pointer page:%d, record:%d, total output count:1, execution time (mil):%d", pageNumber, recordNumber, System.currentTimeMillis());
 			t.traceLog.add(entry);
 			FileManager.storeTable(tableName, t);
 		}
