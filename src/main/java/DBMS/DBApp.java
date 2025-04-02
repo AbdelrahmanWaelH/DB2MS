@@ -15,12 +15,25 @@ public class DBApp
 	
 	public static void createTable(String tableName, String[] columnsNames)
 	{
+		Table newTable = new Table(columnsNames);
+		FileManager.storeTable(tableName, newTable);
 
 	}
 	
 	public static void insert(String tableName, String[] record)
 	{
-		
+		Table currentTable = FileManager.loadTable(tableName);
+
+		if (currentTable.canInsertIntoLastPage(dataPageSize)){
+			currentTable.insertRecord(record);
+		}else{
+			currentTable.addPage();
+			currentTable.insertRecord(record);
+		}
+		FileManager.storeTablePage(tableName,currentTable.getLastPageNumber(), currentTable.getLastPage());
+
+
+		//currentTable.pages.add()
 	}
 	
 	public static ArrayList<String []> select(String tableName)
