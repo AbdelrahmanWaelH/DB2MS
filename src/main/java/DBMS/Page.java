@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 public class Page implements Serializable
 {
-    ArrayList<ArrayList<String>> rows;
+    ArrayList<String []> rows;
 
 
     public int getNumOfRecords() {
@@ -16,8 +16,14 @@ public class Page implements Serializable
     }
     public void insertRow(String[] row){
         if (rows == null){
-            rows = new ArrayList<ArrayList<String>>();
+            rows = new ArrayList<String []>();
         }
-        rows.add(new ArrayList<>(Arrays.asList(row)));
+        rows.add(row);
+    }
+    public ArrayList<String[]> getRows(){
+        return rows;
+    }
+    public String[] getRecord(int recordNumber){
+        return rows.get(recordNumber);
     }
 }

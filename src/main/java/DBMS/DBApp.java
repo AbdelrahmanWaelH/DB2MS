@@ -16,7 +16,7 @@ public class DBApp
 	public static void createTable(String tableName, String[] columnsNames)
 	{
 		Table newTable = new Table(columnsNames);
-		FileManager.storeTable(tableName, newTable);
+		System.out.println(FileManager.storeTable(tableName, newTable));
 
 	}
 	
@@ -38,14 +38,17 @@ public class DBApp
 	
 	public static ArrayList<String []> select(String tableName)
 	{
-		
-		return new ArrayList<String[]>();
+		Table currentTable = FileManager.loadTable(tableName);
+
+		return currentTable.getAllTableContent();
 	}
 	
 	public static ArrayList<String []> select(String tableName, int pageNumber, int recordNumber)
 	{
-		
-		return new ArrayList<String[]>();
+		Table currentTable = FileManager.loadTable(tableName);
+		ArrayList<String[]> tmp =  new ArrayList<String[]>();
+		tmp.add(currentTable.getRecord(pageNumber,recordNumber));
+		return tmp;
 	}
 	
 	public static ArrayList<String []> select(String tableName, String[] cols, String[] vals)

@@ -3,6 +3,7 @@ package DBMS;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 public class Table implements Serializable
 {
@@ -47,4 +48,29 @@ public class Table implements Serializable
 	public int getLastPageNumber(){
 		return pages.size();
 	}
+	/* my initial implementation:
+	public ArrayList<String[]> getAllTableContent(){
+		ArrayList<String[]> tmp  =new ArrayList<String[]>();
+		for (Page page :
+				pages) {
+			ArrayList<String[]> pageRows= page.getRows();
+			for (String[] row:
+			pageRows){
+				tmp.add(row);
+			}
+		}
+		return tmp;
+	}
+
+	 */
+	// claudes implementation:
+	public ArrayList<String[]> getAllTableContent() {
+		return pages.stream()
+				.flatMap(page -> page.getRows().stream())
+				.collect(Collectors.toCollection(ArrayList::new));
+	}
+	public String[] getRecord(int pageNumber, int recordNumber){
+		return pages.get(pageNumber).getRecord(recordNumber);
+	}
 }
+
