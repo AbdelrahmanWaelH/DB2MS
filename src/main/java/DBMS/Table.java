@@ -10,34 +10,41 @@ public class Table implements Serializable
 	String[] columns;
 	int columnNumber;
 	int tablePageCount;
+
 	public Table(String [] columns){
-		pages = null;
+		pages = new ArrayList<Page>();
 		tablePageCount = 0;
 		this.columns = columns;
 		columnNumber = columns.length;
 	}
 	public void addPage(){
+		if(pages == null){
+			pages = new ArrayList<>();
+		}
 		this.pages.add(new Page());
 		this.tablePageCount++;
 	}
 
 	public int getLastPageNumOfRecords(){
-		return getLastPage().getNumOfRecords();
+		if (pages!= null)
+			return getLastPage().getNumOfRecords();
+		return 0;
 	}
 
 	public Page getLastPage(){
-		if (pages == null){
+		if (pages == null || pages.isEmpty()){
 			addPage();
 		}
-		return pages.get(tablePageCount - 1);
+		return pages.get(pages.size()-1 );
 	}
 	public boolean canInsertIntoLastPage(int dataPageSize){
+
 		return getLastPageNumOfRecords() < dataPageSize;
 	}
 	public void insertRecord(String[] row){
 		getLastPage().insertRow(row);
 	}
 	public int getLastPageNumber(){
-		return pages.size()-1;
+		return pages.size();
 	}
 }

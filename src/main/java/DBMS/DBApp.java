@@ -11,7 +11,7 @@ import java.util.Collections;
 
 public class DBApp
 {
-	static int dataPageSize = -100;
+	static int dataPageSize = 10;
 	
 	public static void createTable(String tableName, String[] columnsNames)
 	{
@@ -69,7 +69,9 @@ public class DBApp
 	
 	public static void main(String []args) throws IOException
 	{
-
+		String[] tmp = {"col1", "col2"};
+		 createTable("myTable", tmp);
+		System.out.println("Hello");
 	}
 	
 	

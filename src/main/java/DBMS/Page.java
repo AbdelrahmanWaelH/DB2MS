@@ -10,9 +10,14 @@ public class Page implements Serializable
 
 
     public int getNumOfRecords() {
-        return rows.size();
+        if(rows != null)
+            return rows.size();
+        return 0;
     }
     public void insertRow(String[] row){
+        if (rows == null){
+            rows = new ArrayList<ArrayList<String>>();
+        }
         rows.add(new ArrayList<>(Arrays.asList(row)));
     }
 }
