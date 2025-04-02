@@ -23,12 +23,13 @@ public class Table implements Serializable
 		this.tableName = tableName;
 		Trace = new ArrayList<String>();
 		Trace.add("Table created name:" + tableName +"ColumnsNames" + Arrays.toString(columns));
+		FileManager.storeTable(tableName,this);
 	}
 	public String getFullTrace(){
 		return String.join("\n", Trace);
 	}
 	public String getLastTrace(){
-		return Trace.get(Trace.size()-1);
+		return Trace.get(Trace.size()- 1);
 	}
 	public void addPage(){
 		if(pages == null){
@@ -57,11 +58,12 @@ public class Table implements Serializable
 	public void insertRecord(String tableName,String[] row){
 		long startTime = System.currentTimeMillis();
 		getLastPage().insertRow(row);
-		FileManager.storeTablePage(tableName,getLastPageNumber()-1s,getLastPage());
+		FileManager.storeTablePage(tableName,getLastPageNumber()-1,getLastPage());
 		long endTime = System.currentTimeMillis();
 		long executionTime = endTime - startTime;
 
 		Trace.add("Inserted:"+Arrays.toString(row)+", at page number:"+this.getLastPageNumber() + ", execution time (mil):" +executionTime );
+		FileManager.storeTable(tableName,this);
 	}
 	public int getLastPageNumber(){
 		return pages.size();
@@ -91,6 +93,7 @@ public class Table implements Serializable
 		long endTime = System.currentTimeMillis();
 		long executionTime = endTime - startTime;
 		Trace.add("Select all pages:"+pages.size()+", records:"+ans.size()+", execution time (mil):" + executionTime);
+		FileManager.storeTable(tableName,this);
 		return ans;
 
 	}
@@ -102,6 +105,7 @@ public class Table implements Serializable
 		long endTime = System.currentTimeMillis();
 		long executionTime = endTime - startTime;
 		Trace.add("Select pointer page:"+pageNumber+", record:"+recordNumber+", total output count:1, execution time (mil):" + executionTime);
+		FileManager.storeTable(tableName,this);
 		return ans;
 	}
 
@@ -158,6 +162,7 @@ public class Table implements Serializable
 		String condition = conditionBuilder.toString();
 
 		Trace.add( "Select condition(s):"+condition+", Records per page:"+formattedRecordsPerPage + ", records:"+ans.size() +", execution time (mil):"+ executionTime);
+		FileManager.storeTable(tableName,this);
 		return ans;
 	}
 	public static boolean Compare(String[] a, String[] b){
