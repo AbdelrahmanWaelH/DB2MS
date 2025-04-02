@@ -7,16 +7,27 @@ import java.util.stream.Collectors;
 
 public class Table implements Serializable
 {
+	String tableName;
 	ArrayList<Page> pages;
 	String[] columns;
 	int columnNumber;
 	int tablePageCount;
+	ArrayList<String> Trace;
 
-	public Table(String [] columns){
+
+	public Table(String tableName,String [] columns){
 		pages = new ArrayList<Page>();
 		tablePageCount = 0;
 		this.columns = columns;
 		columnNumber = columns.length;
+		this.tableName = tableName;
+		Trace.add("Table created name:" + tableName +"ColumnsNames" + Arrays.toString(columns));
+	}
+	public String getFullTrace(){
+		return String.join("\n", Trace);
+	}
+	public String getLastTrace(){
+		return Trace.get(Trace.size()-1);
 	}
 	public void addPage(){
 		if(pages == null){
@@ -43,7 +54,12 @@ public class Table implements Serializable
 		return getLastPageNumOfRecords() < dataPageSize;
 	}
 	public void insertRecord(String[] row){
+		long startTime = System.currentTimeMillis();
 		getLastPage().insertRow(row);
+		long endTime = System.currentTimeMillis();
+		long executionTime = endTime - startTime;
+
+		Trace.add("Inserted:"+Arrays.toString(row)+", at page number:"+this.getLastPageNumber() + ", execution time (mil):" +executionTime );
 	}
 	public int getLastPageNumber(){
 		return pages.size();
@@ -65,15 +81,30 @@ public class Table implements Serializable
 	 */
 	// claudes implementation:
 	public ArrayList<String[]> getAllTableContent() {
-		return pages.stream()
+		long startTime = System.currentTimeMillis();
+
+		ArrayList<String[]> ans = pages.stream()
 				.flatMap(page -> page.getRows().stream())
 				.collect(Collectors.toCollection(ArrayList::new));
+		long endTime = System.currentTimeMillis();
+		long executionTime = endTime - startTime;
+		Trace.add("Select all pages:"+pages.size()+", records:"+ans.size()+", execution time (mil):" + executionTime);
+		return ans;
+
 	}
 	public String[] getRecord(int pageNumber, int recordNumber){
-		return pages.get(pageNumber).getRecord(recordNumber);
+		long startTime = System.currentTimeMillis();
+		String[] ans = pages.get(pageNumber).getRecord(recordNumber);
+		long endTime = System.currentTimeMillis();
+		long executionTime = endTime - startTime;
+		Trace.add("Select pointer page:"+pageNumber+", record:"+recordNumber+", total output count:1, execution time (mil):" + executionTime);
+		return ans;
 	}
 
 	public ArrayList<String[]> selectWhere( String[] cols, String[] vals){
+
+		long startTime = System.currentTimeMillis();
+
 		String[] tmp = new String[columns.length];
 		ArrayList<String[] > ans = new ArrayList<String[]>();
 		for (int i = 0; i < cols.length; i++) {
@@ -82,13 +113,47 @@ public class Table implements Serializable
 					tmp[j] = vals[i];
 			}
 		}
+
+		int records_per_page[] =  new int[pages.size()];
 		for (int i = 0; i < pages.size(); i++) {
+
 			ArrayList<String[]> pageRecords = pages.get(i).getRows();
 			for (String[] pageRecord :
 					pageRecords) {
-				if(Compare(tmp,pageRecord )) ans.add(pageRecord);
+				if(Compare(tmp,pageRecord )) {
+					ans.add(pageRecord);
+					records_per_page[i]++;
+				}
 			}
 		}
+		long endTime = System.currentTimeMillis();
+		long executionTime = endTime - startTime;
+		StringBuilder formattedRecordsPerPage = new StringBuilder("[[");
+		for (int i = 0; i < records_per_page.length; i++) {
+			formattedRecordsPerPage.append(i).append(", ").append(records_per_page[i]).append("]");
+			if (i < records_per_page.length - 1) {
+				formattedRecordsPerPage.append(", [");
+			}
+		}
+		formattedRecordsPerPage.append("]");
+		StringBuilder conditionBuilder = new StringBuilder();
+		for (int i = 0; i < cols.length; i++) {
+			// Find the corresponding column index
+			for (int j = 0; j < columns.length; j++) {
+				if(cols[i] == columns[j]) {
+					tmp[j] = vals[i];
+				}
+			}
+
+			// Append to the condition string
+			if (i > 0) {
+				conditionBuilder.append(", ");
+			}
+			conditionBuilder.append("[").append(cols[i]).append("]->[").append(vals[i]).append("]");
+		}
+		String condition = conditionBuilder.toString();
+
+		Trace.add( "Select condition(s):"+condition+", Records per page:"+formattedRecordsPerPage + ", records:"+ans.size() +", execution time (mil):"+ executionTime);
 		return ans;
 	}
 	public static boolean Compare(String[] a, String[] b){

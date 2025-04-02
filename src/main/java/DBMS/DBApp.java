@@ -15,7 +15,7 @@ public class DBApp
 	
 	public static void createTable(String tableName, String[] columnsNames)
 	{
-		Table newTable = new Table(columnsNames);
+		Table newTable = new Table(tableName,columnsNames);
 		System.out.println(FileManager.storeTable(tableName, newTable));
 
 	}
@@ -59,14 +59,14 @@ public class DBApp
 	
 	public static String getFullTrace(String tableName)
 	{
-		
-		return "";
+
+		return FileManager.loadTable(tableName).getFullTrace();
 	}
 	
 	public static String getLastTrace(String tableName)
 	{
 		
-		return "";
+		return FileManager.loadTable(tableName).getLastTrace();
 	}
 	
 	
