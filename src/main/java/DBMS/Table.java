@@ -14,6 +14,7 @@ public class Table implements Serializable
 	int tablePageCount;
 	ArrayList<String> Trace;
 
+	int recordsCount;
 
 	public Table(String tableName,String [] columns){
 		pages = new ArrayList<Page>();
@@ -25,7 +26,8 @@ public class Table implements Serializable
 		Trace.add("Table created name:" + tableName +"ColumnsNames" + Arrays.toString(columns));
 		FileManager.storeTable(tableName,this);
 	}
-	public String getFullTrace(){
+	public String getFullTrace(int dataPageSize){
+		Trace.add("Pages Count: "+this.pages.size()+", Records Count: "+this.recordsCount)	;
 		return String.join("\n", Trace);
 	}
 	public String getLastTrace(){
@@ -62,6 +64,7 @@ public class Table implements Serializable
 		long endTime = System.currentTimeMillis();
 		long executionTime = endTime - startTime;
 
+		this.recordsCount++;
 		Trace.add("Inserted:"+Arrays.toString(row)+", at page number:"+this.getLastPageNumber() + ", execution time (mil):" +executionTime );
 		FileManager.storeTable(tableName,this);
 	}
@@ -117,7 +120,7 @@ public class Table implements Serializable
 		ArrayList<String[] > ans = new ArrayList<String[]>();
 		for (int i = 0; i < cols.length; i++) {
 			for (int j = 0; j < columns.length; j++) {
-				if(cols[i] == columns[j])
+				if(cols[i].equals(columns[j]))
 					tmp[j] = vals[i];
 			}
 		}
@@ -136,38 +139,27 @@ public class Table implements Serializable
 		}
 		long endTime = System.currentTimeMillis();
 		long executionTime = endTime - startTime;
-		StringBuilder formattedRecordsPerPage = new StringBuilder("[[");
+
+		StringBuilder formattedRecordsPerPage = new StringBuilder();
+		formattedRecordsPerPage.append("[");
+		boolean firstEntry = true;
 		for (int i = 0; i < records_per_page.length; i++) {
-			formattedRecordsPerPage.append(i).append(", ").append(records_per_page[i]).append("]");
-			if (i < records_per_page.length - 1) {
-				formattedRecordsPerPage.append(", [");
+			if (records_per_page[i] > 0) {
+				if (!firstEntry) {
+					formattedRecordsPerPage.append(", ");
+				}
+				formattedRecordsPerPage.append("[").append(i).append(", ").append(records_per_page[i]).append("]");
+				firstEntry = false;
 			}
 		}
 		formattedRecordsPerPage.append("]");
-		StringBuilder conditionBuilder = new StringBuilder();
-		for (int i = 0; i < cols.length; i++) {
-			// Find the corresponding column index
-			for (int j = 0; j < columns.length; j++) {
-				if(cols[i] == columns[j]) {
-					tmp[j] = vals[i];
-				}
-			}
-
-			// Append to the condition string
-			if (i > 0) {
-				conditionBuilder.append(", ");
-			}
-			conditionBuilder.append("[").append(cols[i]).append("]->[").append(vals[i]).append("]");
-		}
-		String condition = conditionBuilder.toString();
-
-		Trace.add( "Select condition(s):"+condition+", Records per page:"+formattedRecordsPerPage + ", records:"+ans.size() +", execution time (mil):"+ executionTime);
+		Trace.add( "Select condition(s):"+Arrays.toString(cols)+"->"+Arrays.toString(vals) +", Records per page:"+formattedRecordsPerPage + ", records:"+ans.size() +", execution time (mil):"+ executionTime);
 		FileManager.storeTable(tableName,this);
 		return ans;
 	}
 	public static boolean Compare(String[] a, String[] b){
 		for (int i = 0; i < a.length; i++) {
-			if (a[i] != null && a[i] != b[i])
+			if (a[i] != null  && ! a[i].equals(b[i]))
 				return false;
 		}
 		return true;
