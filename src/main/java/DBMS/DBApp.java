@@ -59,7 +59,7 @@ public class DBApp
 	public static String getFullTrace(String tableName)
 	{
 
-		return FileManager.loadTable(tableName).getFullTrace();
+		return FileManager.loadTable(tableName).getFullTrace(dataPageSize);
 	}
 	
 	public static String getLastTrace(String tableName)
