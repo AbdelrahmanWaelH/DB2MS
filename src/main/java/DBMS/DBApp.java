@@ -25,15 +25,14 @@ public class DBApp
 		Table currentTable = FileManager.loadTable(tableName);
 
 		if (currentTable.canInsertIntoLastPage(dataPageSize)){
-			currentTable.insertRecord(record);
+			currentTable.insertRecord(tableName,record);
 		}else{
 			currentTable.addPage();
-			currentTable.insertRecord(record);
+			currentTable.insertRecord(tableName,record);
 		}
-		FileManager.storeTablePage(tableName,currentTable.getLastPageNumber(), currentTable.getLastPage());
 
 
-		//currentTable.pages.add()
+		FileManager.storeTable(tableName, currentTable);
 	}
 	
 	public static ArrayList<String []> select(String tableName)
@@ -47,7 +46,7 @@ public class DBApp
 	{
 		Table currentTable = FileManager.loadTable(tableName);
 		ArrayList<String[]> tmp =  new ArrayList<String[]>();
-		tmp.add(currentTable.getRecord(pageNumber,recordNumber));
+		tmp.add(currentTable.getRecord(tableName, pageNumber,recordNumber));
 		return tmp;
 	}
 	

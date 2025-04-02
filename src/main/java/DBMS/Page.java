@@ -8,7 +8,9 @@ public class Page implements Serializable
 {
     ArrayList<String []> rows;
 
-
+    public Page(){
+        rows = new ArrayList<>();
+    }
     public int getNumOfRecords() {
         if(rows != null)
             return rows.size();

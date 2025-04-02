@@ -21,6 +21,7 @@ public class Table implements Serializable
 		this.columns = columns;
 		columnNumber = columns.length;
 		this.tableName = tableName;
+		Trace = new ArrayList<String>();
 		Trace.add("Table created name:" + tableName +"ColumnsNames" + Arrays.toString(columns));
 	}
 	public String getFullTrace(){
@@ -53,9 +54,10 @@ public class Table implements Serializable
 
 		return getLastPageNumOfRecords() < dataPageSize;
 	}
-	public void insertRecord(String[] row){
+	public void insertRecord(String tableName,String[] row){
 		long startTime = System.currentTimeMillis();
 		getLastPage().insertRow(row);
+		FileManager.storeTablePage(tableName,getLastPageNumber()-1s,getLastPage());
 		long endTime = System.currentTimeMillis();
 		long executionTime = endTime - startTime;
 
@@ -92,9 +94,11 @@ public class Table implements Serializable
 		return ans;
 
 	}
-	public String[] getRecord(int pageNumber, int recordNumber){
+	public String[] getRecord(String tableName,int pageNumber, int recordNumber){
 		long startTime = System.currentTimeMillis();
-		String[] ans = pages.get(pageNumber).getRecord(recordNumber);
+		String [] ans = FileManager.loadTablePage(tableName,pageNumber).getRecord(recordNumber);
+
+
 		long endTime = System.currentTimeMillis();
 		long executionTime = endTime - startTime;
 		Trace.add("Select pointer page:"+pageNumber+", record:"+recordNumber+", total output count:1, execution time (mil):" + executionTime);
