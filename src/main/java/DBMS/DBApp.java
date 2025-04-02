@@ -53,8 +53,8 @@ public class DBApp
 	
 	public static ArrayList<String []> select(String tableName, String[] cols, String[] vals)
 	{
-		
-		return new ArrayList<String[]>();
+		Table currentTable = FileManager.loadTable(tableName);
+		return currentTable.selectWhere(cols,vals);
 	}
 	
 	public static String getFullTrace(String tableName)

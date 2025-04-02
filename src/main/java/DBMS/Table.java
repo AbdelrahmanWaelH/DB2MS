@@ -72,5 +72,31 @@ public class Table implements Serializable
 	public String[] getRecord(int pageNumber, int recordNumber){
 		return pages.get(pageNumber).getRecord(recordNumber);
 	}
+
+	public ArrayList<String[]> selectWhere( String[] cols, String[] vals){
+		String[] tmp = new String[columns.length];
+		ArrayList<String[] > ans = new ArrayList<String[]>();
+		for (int i = 0; i < cols.length; i++) {
+			for (int j = 0; j < columns.length; j++) {
+				if(cols[i] == columns[j])
+					tmp[j] = vals[i];
+			}
+		}
+		for (int i = 0; i < pages.size(); i++) {
+			ArrayList<String[]> pageRecords = pages.get(i).getRows();
+			for (String[] pageRecord :
+					pageRecords) {
+				if(Compare(tmp,pageRecord )) ans.add(pageRecord);
+			}
+		}
+		return ans;
+	}
+	public static boolean Compare(String[] a, String[] b){
+		for (int i = 0; i < a.length; i++) {
+			if (a[i] != null && a[i] != b[i])
+				return false;
+		}
+		return true;
+	}
 }
 
