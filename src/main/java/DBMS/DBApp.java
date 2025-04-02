@@ -13,9 +13,9 @@ public class DBApp
 {
 	static int dataPageSize = -100;
 	
-	public static void createTable()
+	public static void createTable(String tableName, String[] columnsNames)
 	{
-		System.out.println("hello world!");
+
 	}
 	
 	public static void insert(String tableName, String[] record)
@@ -56,8 +56,7 @@ public class DBApp
 	
 	public static void main(String []args) throws IOException
 	{
-		createTable();
-		
+
 	}
 	
 	
