@@ -1,4 +1,4 @@
-package DBMS;
+package com.dbapp;
 
 import java.io.File;
 import java.io.FileInputStream;
