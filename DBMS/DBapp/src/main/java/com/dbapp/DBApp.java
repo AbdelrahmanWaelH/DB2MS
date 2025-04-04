@@ -9,7 +9,7 @@ import static com.dbapp.FileManager.*;
 public class DBApp {
 
 	// 25 rows per each page
-	static final int dataPageSize = 2;
+	static int dataPageSize = 200;
 
 	// helper function to add the traces to a table
 	public static void addTracesToTable(String tableName, StringBuilder builder){
