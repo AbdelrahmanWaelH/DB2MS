@@ -196,9 +196,11 @@ public class DBApp {
 			}
 		} catch (Exception ignored) {}
 
+		Map<Integer, Integer> sortedMap = new TreeMap<>(recordsPerPage); // ensures keys are sorted
 		StringBuilder resultBuilder = new StringBuilder();
 		resultBuilder.append("[");
-		for (Iterator<Map.Entry<Integer, Integer>> iterator = recordsPerPage.entrySet().iterator(); iterator.hasNext(); ) {
+		Iterator<Map.Entry<Integer, Integer>> iterator = sortedMap.entrySet().iterator();
+		while (iterator.hasNext()) {
 			Map.Entry<Integer, Integer> entry = iterator.next();
 			resultBuilder.append("[").append(entry.getKey()).append(", ").append(entry.getValue()).append("]");
 			if (iterator.hasNext()) {
@@ -206,6 +208,7 @@ public class DBApp {
 			}
 		}
 		resultBuilder.append("]");
+
 
 		long endTime = System.currentTimeMillis();
 		long executionTime = endTime - startTime;
