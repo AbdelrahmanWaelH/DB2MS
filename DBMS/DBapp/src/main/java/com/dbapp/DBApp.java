@@ -3,6 +3,8 @@ package com.dbapp;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.dbapp.FileManager.*;
@@ -47,6 +49,7 @@ public class DBApp {
 		Table t = Table.builder()
 				.columnsNames(columnsNames)
 				.traces(traces)
+				.pageCount(0)
 				.build();
 
 		storeTable(tableName,t);
@@ -75,6 +78,12 @@ public class DBApp {
 
 		// Store the updated page
 		storeTablePage(tableName, pageIndex, p);
+
+		// update table page count
+		Table t = loadTable(tableName);
+		t.setPageCount(pageIndex);
+		storeTable(tableName, t);
+
 
 		// build the trace
 		long endTime = System.currentTimeMillis();
@@ -332,11 +341,95 @@ public class DBApp {
 	}
 
 	public static ArrayList<String []> validateRecords(String tableName){
-		return new ArrayList<>();
+		ArrayList<String[]> rows = new ArrayList<>();
+		Table table = loadTable(tableName);
+		for (int i = 0;i<=table.pageCount;i++) {
+			Page p = loadTablePage(tableName, i);
+			if(p!=null){
+				List<String []> rs = p.getRows();
+				rows.addAll(rs);
+			}
+		}
+
+		List<String> insertTraces = table.getTraces().stream()
+				.filter(t -> t.contains("Inserted:"))
+				.collect(Collectors.toList());
+
+		List<String[]> insertedFromTraces = insertTraces.stream()
+				.map(trace -> {
+					int start = trace.indexOf("[") + 1;
+					int end = trace.indexOf("]");
+					String recordData = trace.substring(start, end);
+					return recordData.replaceAll("\\s+", "").split(",");
+				})
+				.collect(Collectors.toList());
+
+		List<String[]> missing = insertedFromTraces.stream()
+				.filter(indexedArr -> rows.stream().noneMatch(linearArr -> Arrays.equals(indexedArr, linearArr)))
+				.collect(Collectors.toList());
+
+		StringBuilder builder = new StringBuilder();
+		builder.append("Validating records: ");
+		builder.append(missing.size());
+		builder.append(" records missing.");
+		addTracesToTable(tableName, builder);
+		return new ArrayList<>(missing);
 	}
 
 	public static void recoverRecords(String tableName, ArrayList<String[]> missing){
+		Table table = loadTable(tableName);
 
+		List<String> insertTraces = table.getTraces().stream()
+				.filter(t -> t.contains("Inserted:"))
+				.collect(Collectors.toList());
+		Map<Integer, List<String[]>> insertedPerPage = new HashMap<>();
+
+		for (String trace : insertTraces) {
+			// Extract the page number
+			Pattern pattern = Pattern.compile("at page number:(\\d+)");
+			Matcher matcher = pattern.matcher(trace);
+			int pageIndx = -1;
+			if (matcher.find()) {
+				pageIndx = Integer.parseInt(matcher.group(1));
+			}
+
+			int start = trace.indexOf("[") + 1;
+			int end = trace.indexOf("]");
+			String recordData = trace.substring(start, end);
+			String[] row = recordData.replaceAll("\\s+", "").split(",");
+
+			// Add to map
+			insertedPerPage.computeIfAbsent(pageIndx, k -> new ArrayList<>()).add(row);
+		}
+		Set<Integer> pageNumbers = new TreeSet<>();
+		for(String [] missingRecord : missing){
+			int recordPage = 0;
+			List<String []> records = new ArrayList<>();
+			for (Map.Entry<Integer, List<String[]>> entry : insertedPerPage.entrySet()) {
+				int index = entry.getKey();
+				for (String[] row : entry.getValue()) {
+                    if (Arrays.equals(row, missingRecord)) {
+                        recordPage = index;
+                        break;
+                    }
+				}
+			}
+			pageNumbers.add(recordPage);
+			Page page = loadTablePage(tableName, recordPage);
+			if (page == null) {
+				records.add(missingRecord);
+				page = new Page(records);
+			}else{
+				page.getRows().add(missingRecord);
+			}
+			storeTablePage(tableName,recordPage,page);
+		}
+		StringBuilder builder = new StringBuilder();
+		builder.append("Recovering: ");
+		builder.append(missing.size());
+		builder.append(" records in pages: ");
+		builder.append(Arrays.toString(new ArrayList<>(pageNumbers).toArray(new Integer[0])));
+		addTracesToTable(tableName, builder);
 	}
 
 	public static void createBitMapIndex(String tableName, String colName){
