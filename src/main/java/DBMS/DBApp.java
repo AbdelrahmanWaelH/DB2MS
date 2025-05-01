@@ -67,8 +67,22 @@ public class DBApp
 		
 		return FileManager.loadTable(tableName).getLastTrace();
 	}
-	
-	
+
+	public static ArrayList<String []> validateRecords(String tableName){
+		return null;
+	}
+
+
+	public static void createBitMapIndex(String tableName, String colName){
+		BitmapIndex newIndex =	new  BitmapIndex(tableName, colName);
+		FileManager.storeTableIndex(tableName, colName, newIndex);
+
+	}
+	public static String getValueBits(String tableName, String colName, String value){
+		return null;
+	}
+
+
 	public static void main(String []args) throws IOException
 	{
 		String[] tmp = {"col1", "col2"};
