@@ -1,6 +1,7 @@
 package DBMS;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
@@ -24,7 +25,7 @@ import java.util.HashMap;
  */
 
 
-public class BitmapIndex {
+public class BitmapIndex implements Serializable {
     String tableName;
     String colname;
 
@@ -48,17 +49,20 @@ public class BitmapIndex {
 
         // creating the index as a hashmap of bits
         for (int i=0; i< allRows.size(); i++) {
-            BitSet currValue = bitsets.getOrDefault(allRows.get(colNumber)[i],null);
+            BitSet currValue = bitsets.getOrDefault(allRows.get(i)[colNumber],null);
             // creating a bitset in case of a new value
             if(currValue == null){
-                bitsets.put(allRows.get(colNumber)[i], new BitSet(i));
+                bitsets.put(allRows.get(i)[colNumber], new BitSet(i));
             }
             // setting the corresponding bit in all cases
-            bitsets.get(allRows.get(colNumber)[i]).set(i);
+            bitsets.get(allRows.get(i)[colNumber]).set(i);
         }
 //        FileManager.storeTableIndex(tableName, colName, this);
     }
 
+    public BitSet getBitset(String value){
+        return bitsets.get(value);
+    }
     void updateIndex(Table table, String colName, String[] record, int i){
         BitSet currValue =bitsets.getOrDefault(record[i], null);
         if(currValue == null){
@@ -69,6 +73,11 @@ public class BitmapIndex {
 
         FileManager.storeTableIndex(table.tableName, colName, this);
     }
+
+    public BitSet getColumnValueBits(String value){
+        return bitsets.get(value);
+    }
+
 
 }
 

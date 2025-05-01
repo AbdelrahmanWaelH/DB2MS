@@ -31,6 +31,10 @@ public class Table implements Serializable
 		Trace.add("Pages Count: "+this.pages.size()+", Records Count: "+this.recordsCount)	;
 		return String.join("\n", Trace);
 	}
+
+	public int getRecordsCount(){
+		return recordsCount;
+	}
 	public String getLastTrace(){
 		return Trace.get(Trace.size()- 1);
 	}
