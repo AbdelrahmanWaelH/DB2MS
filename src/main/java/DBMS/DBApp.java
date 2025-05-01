@@ -3,10 +3,7 @@ package DBMS;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
 
 
 public class DBApp
@@ -30,8 +27,12 @@ public class DBApp
 			currentTable.addPage();
 			currentTable.insertRecord(tableName,record);
 		}
-
-
+		for (int i=0; i < currentTable.columns.length; i++) {
+			if (currentTable.indices[i]){
+				BitmapIndex tmp = FileManager.loadTableIndex(currentTable.tableName, currentTable.columns[i]);
+				tmp.updateIndex(currentTable,currentTable.columns[i], record , i);
+			}
+		}
 		FileManager.storeTable(tableName, currentTable);
 	}
 	

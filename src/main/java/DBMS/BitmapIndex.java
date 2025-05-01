@@ -44,6 +44,7 @@ public class BitmapIndex {
             if (currTable.columns[i].equals(colname))
                 colNumber = i;
         }
+        currTable.indices[colNumber] = true;
 
         // creating the index as a hashmap of bits
         for (int i=0; i< allRows.size(); i++) {
@@ -57,6 +58,18 @@ public class BitmapIndex {
         }
 //        FileManager.storeTableIndex(tableName, colName, this);
     }
+
+    void updateIndex(Table table, String colName, String[] record, int i){
+        BitSet currValue =bitsets.getOrDefault(record[i], null);
+        if(currValue == null){
+            bitsets.put(record[i], new BitSet(i));
+        }
+        // setting the corresponding bit in all cases
+        bitsets.get(record[i]).set(i);
+
+        FileManager.storeTableIndex(table.tableName, colName, this);
+    }
+
 }
 
 

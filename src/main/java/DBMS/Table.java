@@ -13,7 +13,7 @@ public class Table implements Serializable
 	int columnNumber;
 	int tablePageCount;
 	ArrayList<String> Trace;
-
+	boolean indices[];
 	int recordsCount;
 
 	public Table(String tableName,String [] columns){
@@ -22,6 +22,7 @@ public class Table implements Serializable
 		this.columns = columns;
 		columnNumber = columns.length;
 		this.tableName = tableName;
+		indices = new boolean[columnNumber];
 		Trace = new ArrayList<String>();
 		Trace.add("Table created name:" + tableName +"ColumnsNames" + Arrays.toString(columns));
 		FileManager.storeTable(tableName,this);
