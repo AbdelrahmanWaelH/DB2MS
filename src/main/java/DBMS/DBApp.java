@@ -85,6 +85,7 @@ public class DBApp {
     }
 
     public static ArrayList<String[]> selectIndex(String tableName, String[] cols, String[] vals) {
+        long startTime = System.currentTimeMillis();
         Table currentTable = FileManager.loadTable(tableName);
         ArrayList<BitSet> bitSets = new ArrayList<>();
 
@@ -170,6 +171,38 @@ public class DBApp {
                 ans.add(currRecord);
             }
         }
+        long endTime = System.currentTimeMillis();
+        long executionTime = endTime - startTime;
+
+        // build lists of which columns were indexed vs not
+        List<String> indexedColsList   = new ArrayList<>();
+        List<String> unindexedColsList = new ArrayList<>();
+        for (Map.Entry<Integer, String> e : tableColNumTOValsString.entrySet()) {
+            int col = e.getKey();
+            if (currentTable.indices[col]) {
+                indexedColsList.add(currentTable.columns[col]);
+            } else {
+                unindexedColsList.add(currentTable.columns[col]);
+            }
+        }
+
+        // counts
+        int idxCount   = res.cardinality();
+        int finalCount = ans.size();
+
+        // the single Trace entry
+        currentTable.Trace.add(
+                "Select index condition:" + Arrays.toString(cols) + "->" + Arrays.toString(vals) +
+                        ", Indexed columns: "       + indexedColsList +
+                        ", Indexed selection count: " + idxCount +
+                        (unindexedColsList.isEmpty()
+                                ? ""
+                                : ", Non Indexed: " + unindexedColsList) +
+                        ", Final count: "          + finalCount +
+                        ", execution time (mil):"   + executionTime
+        );
+
+        FileManager.storeTable(tableName, currentTable);
         return ans;
     }
 

@@ -34,6 +34,7 @@ public class BitmapIndex implements Serializable {
     int totalRowsInTable;
 
     public  BitmapIndex(String tableName, String colName){
+        long startTime = System.currentTimeMillis();
         this.tableName = tableName;
         this.colname = colName;
         Table currTable = FileManager.loadTable(tableName);
@@ -48,8 +49,7 @@ public class BitmapIndex implements Serializable {
             if (currTable.columns[i].equals(colname))
                 colNumber = i;
         }
-        currTable.indices[colNumber] = true;
-        FileManager.storeTable(currTable.tableName, currTable);
+
         // creating the index as a hashmap of bits
         for (int i=0; i< allRows.size(); i++) {
             BitSet currValue = bitsets.getOrDefault(allRows.get(i)[colNumber],null);
@@ -60,6 +60,11 @@ public class BitmapIndex implements Serializable {
             // setting the corresponding bit in all cases
             bitsets.get(allRows.get(i)[colNumber]).set(i);
         }
+        currTable.indices[colNumber] = true;
+        long endTime = System.currentTimeMillis();
+        long executionTime = endTime - startTime;
+        currTable.Trace.add("Index created for column:" + colname+", execution time (mil):" + executionTime);
+        FileManager.storeTable(currTable.tableName, currTable);
 //        FileManager.storeTableIndex(tableName, colName, this);
     }
 
