@@ -5,6 +5,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
+import java.util.Map;
 
 /*
     create a bitset for every value in the table column
@@ -30,11 +31,13 @@ public class BitmapIndex implements Serializable {
     String colname;
 
     HashMap<String, BitSet> bitsets;
+    int totalRowsInTable;
 
     public  BitmapIndex(String tableName, String colName){
         this.tableName = tableName;
         this.colname = colName;
         Table currTable = FileManager.loadTable(tableName);
+        this.totalRowsInTable =  currTable.recordsCount;
         ArrayList<String[]> allRows = currTable.getAllTableContent();
 
         bitsets = new HashMap<>();
@@ -46,7 +49,7 @@ public class BitmapIndex implements Serializable {
                 colNumber = i;
         }
         currTable.indices[colNumber] = true;
-
+        FileManager.storeTable(currTable.tableName, currTable);
         // creating the index as a hashmap of bits
         for (int i=0; i< allRows.size(); i++) {
             BitSet currValue = bitsets.getOrDefault(allRows.get(i)[colNumber],null);
@@ -66,11 +69,12 @@ public class BitmapIndex implements Serializable {
     void updateIndex(Table table, String colName, String[] record, int i){
         BitSet currValue =bitsets.getOrDefault(record[i], null);
         if(currValue == null){
-            bitsets.put(record[i], new BitSet(i));
+            bitsets.put(record[i], new BitSet(totalRowsInTable));
         }
         // setting the corresponding bit in all cases
-        bitsets.get(record[i]).set(i);
-
+        bitsets.get(record[i]).set(totalRowsInTable);
+        this.totalRowsInTable =  table.recordsCount;
+        //this.printIndex();
         FileManager.storeTableIndex(table.tableName, colName, this);
     }
 
@@ -78,6 +82,21 @@ public class BitmapIndex implements Serializable {
         return bitsets.get(value);
     }
 
+    public static String toBinaryString(BitSet bs, int length) {
+        StringBuilder sb = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            sb.append(bs.get(i) ? '1' : '0');
+        }
+        return sb.toString();
+    }
+    public void printIndex() {
+        System.out.println("Index on table '" + tableName + "', column '" + colname + "':");
+        for (Map.Entry<String, BitSet> e : bitsets.entrySet()) {
+            String value = e.getKey();
+            BitSet bits = e.getValue();
+            System.out.printf("  %-10s → %s%n", value, toBinaryString(bits, this.totalRowsInTable));
+        }
+    }
 
 }
 

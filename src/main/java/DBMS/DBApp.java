@@ -25,18 +25,19 @@ public class DBApp {
             currentTable.addPage();
             currentTable.insertRecord(tableName, record);
         }
-        for (int i = 0; i < currentTable.columns.length; i++) {
+//		System.out.println(Arrays.toString(currentTable.indices));
+		for (int i = 0; i < currentTable.columns.length; i++) {
             if (currentTable.indices[i]) {
                 BitmapIndex tmp = FileManager.loadTableIndex(currentTable.tableName, currentTable.columns[i]);
                 tmp.updateIndex(currentTable, currentTable.columns[i], record, i);
             }
         }
+
         FileManager.storeTable(tableName, currentTable);
     }
 
     public static ArrayList<String[]> select(String tableName) {
         Table currentTable = FileManager.loadTable(tableName);
-
         return currentTable.getAllTableContent();
     }
 
@@ -66,16 +67,16 @@ public class DBApp {
         return null;
     }
 
-	public static String toBinaryString(BitSet bs) {
-		StringBuilder sb = new StringBuilder(bs.length());
-		for (int i = 0; i < bs.length(); i++) {
+	public static String toBinaryString(BitSet bs, int length) {
+		StringBuilder sb = new StringBuilder(length);
+		for (int i = 0; i < length; i++) {
 			sb.append(bs.get(i) ? '1' : '0');
 		}
 		return sb.toString();
 	}
     public static String getValueBits(String tableName, String colName, String value) {
-        BitSet currBitSet = FileManager.loadTableIndex(tableName, colName).getBitset(value);
-		return toBinaryString(currBitSet);
+        BitmapIndex currBitMI = FileManager.loadTableIndex(tableName, colName);
+		return toBinaryString(currBitMI.getBitset(value), currBitMI.totalRowsInTable );
 	}
 
     public static void createBitMapIndex(String tableName, String colName) {
@@ -98,15 +99,22 @@ public class DBApp {
         }
 
         // this flag represents whether all columns filtered by are indexed with or not
-        boolean flag = true;
+        boolean allFlag = true;
+        boolean none_flag = true;
         for (Map.Entry<Integer, String> entry : tableColNumTOValsString.entrySet()) {
             int key = entry.getKey();
             String value = entry.getValue();
             if (currentTable.indices[key]) {
                 BitmapIndex tmp = FileManager.loadTableIndex(currentTable.tableName, currentTable.columns[key]);
-                bitSets.add(tmp.getBitset(value));
+                BitSet b = tmp.getBitset(value);
+                if (b == null) {
+                    // value was never seen → no rows can match
+                    return new ArrayList<>();
+                }
+                bitSets.add(b);
+                none_flag = false;
             } else {
-                flag = false;
+                allFlag = false;
             }
         }
 
@@ -121,7 +129,7 @@ public class DBApp {
         }
 
         // if no indices then making that bitset to be all to basically be linear search
-        if (res.cardinality() == 0) {
+        if (res.cardinality() == 0 && !allFlag) {
             int i = currentTable.getRecordsCount();
             res.set(0, i);
         }
@@ -131,11 +139,23 @@ public class DBApp {
 
         // if no indices at all then can linearly search over all records in a single for loop
         // if all are indices then we will loop as well but only on set bits from the resulting bitset
-        if (res.isEmpty() || !flag) {
+        if (allFlag) {
             for (int idx = res.nextSetBit(0); idx >= 0; idx = res.nextSetBit(idx + 1)) {
                 ans.add(allRows.get(idx));
             }
-        } else {
+        } else if (none_flag){
+            allRecordLoop:
+            for (String [] currRecord : allRows) {
+                for (Map.Entry<Integer, String> entry : tableColNumTOValsString.entrySet()) {
+                    int key = entry.getKey();
+                    String value = entry.getValue();
+                    if (!currRecord[key].equals(value)) {
+                        continue allRecordLoop;
+                    }
+                }
+                ans.add(currRecord);
+            }
+        }else {
             // in case we have some indexed and some not then we need to loop only on the set bits and then manually check the other columns
             allRecordLoop:
             for (int idx = res.nextSetBit(0); idx >= 0; idx = res.nextSetBit(idx + 1)) {
