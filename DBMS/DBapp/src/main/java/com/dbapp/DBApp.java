@@ -565,6 +565,7 @@ public class DBApp {
 			}
 			long endTime = System.currentTimeMillis();
 			long executionTime = endTime - startTime;
+			Arrays.sort(cols);
 			StringBuilder builder = new StringBuilder();
 			builder.append("Select index condition: ");
 			builder.append(Arrays.toString(cols));
@@ -633,6 +634,7 @@ public class DBApp {
 				}
 			} catch (Exception ignored) {
 			}
+			Arrays.sort(cols);
 			long endTime = System.currentTimeMillis();
 			long executionTime = endTime - startTime;
 			StringBuilder builder = new StringBuilder();
@@ -753,7 +755,10 @@ public class DBApp {
 							linearMatches.stream().anyMatch(linearArr -> Arrays.equals(indexedArr, linearArr))
 					)
 					.collect(Collectors.toList());
-
+			String[] nonIndexed =  nonIndexedColumns.toArray(new String[0]);
+			Arrays.sort(nonIndexed);
+			String[] indexed =  indexedColumns.toArray(new String[0]);
+			Arrays.sort(indexed);
 			long endTime = System.currentTimeMillis();
 			long executionTime = endTime - startTime;
 			StringBuilder builder = new StringBuilder();
@@ -763,13 +768,13 @@ public class DBApp {
 			builder.append(Arrays.toString(vals));
 			builder.append(", ");
 			builder.append("Indexed columns:");
-			builder.append(Arrays.toString(indexedColumns.toArray(new String[0])));
+			builder.append(Arrays.toString(indexed));
 			builder.append(", ");
 			builder.append("Indexed selection count: ");
 			builder.append(indexedMatches.size());
 			builder.append(", ");
 			builder.append("Non Indexed: ");
-			builder.append(Arrays.toString(nonIndexedColumns.toArray(new String[0])));
+			builder.append(Arrays.toString(nonIndexed));
 			builder.append(", ");
 			builder.append("Final count: ");
 			builder.append(matches.size());
